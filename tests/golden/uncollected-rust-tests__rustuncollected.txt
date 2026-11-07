@@ -1,0 +1,3 @@
+-- 2 uncollected rust test(s) from 2 .rs file(s)
+cases/rustuncollected/src/lib.rs:8: forgotten_check()  fn forgotten_check() {
+cases/rustuncollected/tests/integration.rs:4: integration_forgotten()  fn integration_forgotten() {

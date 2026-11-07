@@ -1,0 +1,3 @@
+-- 2 vacuous assertion(s) from 1 test file(s)
+cases/vacuous/test_selfeq.py:25: assertEqual(cube.shape, cube.shape) cannot fail
+cases/vacuous/test_selfeq.py:8: assertEqual(x, x) cannot fail

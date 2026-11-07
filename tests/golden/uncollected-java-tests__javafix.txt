@@ -1,0 +1,2 @@
+-- 1 candidate(s) from 1 test file(s) in 1 root(s); 0 dropped as called elsewhere in the tree
+cases/javafix/src/test/java/ShapesTest.java:38  ShapesTest.testGenuinelyUnannotated()

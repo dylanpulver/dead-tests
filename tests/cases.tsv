@@ -1,0 +1,24 @@
+shadowed-tests	pyshadowed
+uncollected-py-tests	pyuncollected
+uncollected-py-files	pyfiles
+dead-assertions	pyraises
+dead-pytest-raises	pyraises
+discarded-raises	uninvoked
+swallowed-exceptions	pyswallow
+vacuous-assertions	pyvacuous
+vacuous-assertions	vacuous
+missing-await	pyawait
+stale-version-gates	pyskipgate
+dead-version-shims	pyshim
+uncollected-java-tests	javauncollected
+uncollected-java-tests	javafix
+dead-junit4-expected	javaexpected
+uncollected-dotnet-tests	csuncollected
+uncollected-php-tests	phpuncollected
+uncollected-php-tests	phpfix	negative
+dead-php-assertions	phpdead
+uncollected-ruby-tests	rbfix
+uncollected-go-tests	gouncollected
+dead-go-statements	godead
+uncollected-rust-tests	rustuncollected
+matcherless-expects	jsmatcherless

@@ -1,0 +1,6 @@
+-- 5 uncollected .NET test(s) from 5 .cs file(s), 4 of them carrying a test attribute; 2 suppressed as deliberately disabled
+Mstest/FormatterTests.cs:15: FormatterTests.FormatsNegative has assertions, no attribute and no caller [mstest]
+Nunit/ParserTests.cs:22: ParserTests.ParsesEmptyInput has assertions, no attribute and no caller [nunit]
+Nunit/ParserTests.cs:49: ParserTests.ParsesAcrossProcesses has assertions, no attribute and no caller [nunit]
+Nunit/VendoredLookalikeTests.cs:20: VendoredLookalikeTests.StartMemberWriteEndObject has assertions, no attribute and no caller [nunit] [check: header says "Copyright (C) 2010 Novell Inc. http://novell.com", possibly vendored]
+Xunit/CalculatorTests.cs:35: CalculatorTests.AddsTwoNegatives has assertions, no attribute and no caller [xunit] (xUnit1013 already warns)

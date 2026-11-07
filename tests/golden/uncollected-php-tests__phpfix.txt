@@ -1,0 +1,1 @@
+-- 0 candidate(s) from 1 *Test.php file(s)

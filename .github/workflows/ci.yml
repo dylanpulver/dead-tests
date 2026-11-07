@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.12", "3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+      - run: python -m unittest discover tests -v
+
+  image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t deadtests .
+      - run: docker run --rm -v "$PWD/cases/pyshadowed:/src" deadtests scan . | tee out.txt
+      - run: grep -q "2 shadowed test" out.txt

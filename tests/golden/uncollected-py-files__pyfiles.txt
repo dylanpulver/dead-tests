@@ -1,0 +1,2 @@
+-- 1 uncollected file(s) from 7 non-matching file(s) in 1 root(s)
+cases/pyfiles/tests/helpers_for_parsing.py  [3 test def(s), name matches none of test_*.py *_test.py]

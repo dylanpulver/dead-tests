@@ -1,0 +1,4 @@
+-- 3 candidate(s) from 6 go file(s) in 1 root(s)
+cases/gouncollected/pkg/thing_test.go:12  testParsesInput  [lowercase name, never collected]
+cases/gouncollected/pkg/thing_test_windows.go:13  TestSharedName  [not in a _test.go file]
+cases/gouncollected/pkg/thing_test_windows.go:7  TestWindowsOnlyBehaviour  [not in a _test.go file]

@@ -1,0 +1,2 @@
+-- 1 candidate(s) from 3 test-case file(s)
+cases/rbfix/test/thing_test.rb:13: verifies_the_fallback

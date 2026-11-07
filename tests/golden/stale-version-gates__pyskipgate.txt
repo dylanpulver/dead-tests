@@ -1,0 +1,3 @@
+-- 2 stale gate(s); supported minors 3.10-3.14 from '>=3.10,<3.15'
+tests/test_gates.py:37: test_never_runs_equality is skipped on every supported version (sys.version_info[:2] != (3, 9))
+tests/test_gates.py:7: test_never_runs_lower_bound is skipped on every supported version (sys.version_info >= (3, 10))

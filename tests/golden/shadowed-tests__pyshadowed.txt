@@ -1,0 +1,3 @@
+-- 2 shadowed test(s) from 1 test file(s)
+cases/pyshadowed/tests/test_shapes.py:12: <module>.test_area shadows line 8  [module-scope]
+cases/pyshadowed/tests/test_shapes.py:20: TestPerimeter.test_square shadows line 17  [class-scope]

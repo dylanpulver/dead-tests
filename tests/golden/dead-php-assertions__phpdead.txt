@@ -1,0 +1,4 @@
+-- 3 dead assertion(s) from 1 php test file(s)
+cases/phpdead/tests/WrappedTest.php:17: testWrappedDead: self::assertEquals( 1, $tester->run( ['a' => 'b'] ) );
+cases/phpdead/tests/WrappedTest.php:45: testMultiLineExpectMessageThenDeadAssert: $this->assertSame([], $p2->getFilters());
+cases/phpdead/tests/WrappedTest.php:9: testSingleLineDead: self::assertEquals(1, $tester->run(['a' => 'b']));

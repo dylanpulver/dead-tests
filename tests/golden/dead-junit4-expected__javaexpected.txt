@@ -1,0 +1,4 @@
+-- 3 provable hit(s) from 1 java file(s)
+cases/javaexpected/FixtureTest.java:18: @Test(expected = IllegalStateException.class): assertTrue(after());
+cases/javaexpected/FixtureTest.java:24: @Test(expected = Exception.class): assertNotNull(value());
+cases/javaexpected/FixtureTest.java:8: @Test(expected = IllegalArgumentException.class): assertEquals(1, parse("ok"));

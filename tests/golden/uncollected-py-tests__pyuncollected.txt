@@ -1,0 +1,4 @@
+-- 3 candidate(s) from 2 test file(s) in 1 root(s)
+cases/pyuncollected/tests/test_fixture_cases.py:26: TestSomething.method_uncollected() asserts, is not collected, and nothing calls it (read it: a forgotten test, or dead helper code)
+cases/pyuncollected/tests/test_fixture_cases.py:42: method TestCapitalPrefix.TestDoH3PostRequest() is never collected
+cases/pyuncollected/tests/test_fixture_cases.py:4: function real_uncollected_test() is never collected

@@ -1,0 +1,3 @@
+-- 2 vacuous assertion(s) from 2 test file(s)
+cases/pyvacuous/test_real.py:11: assertEqual(schedule.journal_entry, schedule.journal_entry) cannot fail
+cases/pyvacuous/test_real.py:17: assertEqual(po.items[0].rate, po.items[0].rate) cannot fail

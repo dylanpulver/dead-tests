@@ -1,0 +1,3 @@
+-- 2 matcherless expect(s) in 1 test file(s) across 1 root(s)
+cases/jsmatcherless/test/sum.test.js:15  expect(r)
+cases/jsmatcherless/test/sum.test.js:4  expect(sum(1, 2))

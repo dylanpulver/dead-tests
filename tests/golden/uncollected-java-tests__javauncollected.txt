@@ -1,0 +1,3 @@
+-- 2 candidate(s) from 7 test file(s) in 1 root(s); 2 dropped as called elsewhere in the tree
+cases/javauncollected/src/test/java/demo/DeadTest.java:19  DeadTest.testNothingRunsThis()
+cases/javauncollected/src/test/java/demo/LegacyJunit4Test.java:15  LegacyJunit4Test.testForgottenHere()

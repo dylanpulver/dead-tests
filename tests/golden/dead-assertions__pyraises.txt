@@ -1,0 +1,14 @@
+
+    assert after() == 3
+    assert after() == 5
+    assert coerce(1) == 1
+    assert len(of) == 2
+    assert parse('ok') == 1
+    assert thing() == 2
+6 unreachable assertion(s) from 1 python file(s)
+cases/pyraises/test_fixture.py:19  (inside pytest.raises opened at line 17)
+cases/pyraises/test_fixture.py:31  (inside pytest.raises opened at line 29)
+cases/pyraises/test_fixture.py:37  (inside pytest.raises opened at line 35)
+cases/pyraises/test_fixture.py:56  (inside pytest.raises opened at line 54)
+cases/pyraises/test_fixture.py:7  (inside pytest.raises opened at line 5)
+cases/pyraises/test_fixture.py:81  (inside pytest.raises opened at line 79)

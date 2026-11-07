@@ -1,0 +1,5 @@
+-- 4 unawaited call(s) from 1 python file(s)
+tests/test_await.py:13: bound_never_awaited calls inner() without await (bound to r, never awaited)
+tests/test_await.py:36: sync_caller calls inner() without await (bare)
+tests/test_await.py:45: nested calls inner() without await (bare)
+tests/test_await.py:9: bare_discarded calls inner() without await (bare)

@@ -1,0 +1,8 @@
+-- 7 discarded raises-assertion(s) in 1 python file(s) across 1 root(s)
+cases/uninvoked/test_cases.py:10  assert_called_once_with is named but never called
+cases/uninvoked/test_cases.py:18  self.assertRaises(...) with 1 arg(s), needs 2 to run anything
+cases/uninvoked/test_cases.py:28  pytest.raises(...) with 1 arg(s), needs 2 to run anything or a with-block
+cases/uninvoked/test_cases.py:38  assert_has_calls is named but never called
+cases/uninvoked/test_cases.py:45  self.assertRaisesRegex(...) with 2 arg(s), needs 3 to run anything
+cases/uninvoked/test_cases.py:51  self.assertLogs(...) outside a with-block; it has no callable form
+cases/uninvoked/test_cases.py:9  assert_called_once is named but never called

@@ -1,0 +1,112 @@
+#!/usr/bin/env python3
+"""deadtests: find tests that look like coverage but can never fail or never run.
+
+Each check is a standalone, stdlib-only scanner in scanners/. This wrapper picks
+the ones that apply to the languages in a tree and runs them.
+
+  deadtests list                 show every check and the languages it reads
+  deadtests scan [path]          run every check that applies to path
+  deadtests run CHECK [path...]  run one check
+"""
+import os
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+SCANNERS = HERE / "scanners"
+
+# name -> (file, languages, one-line summary)
+CHECKS = {
+    "shadowed-tests":            ("find-shadowed-tests.py", {"py"}, "a later def with the same name means pytest never runs the first"),
+    "uncollected-py-tests":      ("find-uncollected-py-tests.py", {"py"}, "asserting functions pytest never collects, by name"),
+    "uncollected-py-files":      ("find-uncollected-py-files.py", {"py"}, "whole test files outside the python_files patterns"),
+    "dead-assertions":           ("find-dead-assertions.py", {"py"}, "asserts after the raising call inside pytest.raises (lead list)"),
+    "dead-pytest-raises":        ("find-dead-pytest-raises-assertions.py", {"py"}, "asserts inside pytest.raises that provably cannot run"),
+    "discarded-raises":          ("find-discarded-raises.py", {"py"}, "assertRaises / pytest.raises / mock asserts that never execute"),
+    "swallowed-exceptions":      ("find-swallowed-test-exceptions.py", {"py"}, "tests that catch-and-pass and assert nothing"),
+    "vacuous-assertions":        ("find-vacuous-assertions.py", {"py"}, "assertions comparing a value to itself"),
+    "missing-await":             ("find-missing-await.py", {"py"}, "same-file coroutines called without await"),
+    "stale-version-gates":       ("find-stale-version-gates.py", {"py"}, "skipif gates true on every supported Python"),
+    "dead-version-shims":        ("find-dead-version-shims.py", {"py"}, "sys.version_info branches that cannot run"),
+    "uncollected-java-tests":    ("find-uncollected-java-tests.py", {"java"}, "testFoo() methods JUnit 5 cannot collect"),
+    "dead-junit4-expected":      ("find-dead-junit4-expected-assertions.py", {"java"}, "asserts made unreachable by @Test(expected=...)"),
+    "uncollected-dotnet-tests":  ("find-uncollected-dotnet-tests.py", {"cs"}, "NUnit / MSTest / xUnit methods missing their attribute"),
+    "uncollected-php-tests":     ("find-uncollected-php-tests.py", {"php"}, "PHPUnit methods that are never collected"),
+    "dead-php-assertions":       ("find-dead-php-assertions.py", {"php"}, "PHPUnit asserts after a call that throws"),
+    "uncollected-ruby-tests":    ("find-uncollected-ruby-tests.py", {"rb"}, "minitest methods that never run"),
+    "uncollected-go-tests":      ("find-uncollected-go-tests.py", {"go"}, "Test funcs go test never runs"),
+    "dead-go-statements":        ("find-dead-go-statements.go", {"go"}, "statements after t.Fatal / t.FailNow"),
+    "uncollected-rust-tests":    ("find-uncollected-rust-tests.py", {"rs"}, "test-shaped fns with no #[test]"),
+    "matcherless-expects":       ("find-matcherless-expects.py", {"js"}, "Jest / Vitest expect(x) with no matcher"),
+}
+
+EXT = {".py": "py", ".java": "java", ".cs": "cs", ".php": "php", ".rb": "rb", ".go": "go", ".rs": "rs",
+       ".js": "js", ".ts": "js", ".jsx": "js", ".tsx": "js", ".mjs": "js", ".cjs": "js"}
+SKIP = {".git", "node_modules", "vendor", "target", ".venv", "venv", "dist", "build"}
+
+
+def languages(root):
+    found = set()
+    for dirpath, dirnames, filenames in os.walk(root):
+        dirnames[:] = [d for d in dirnames if d not in SKIP]
+        for f in filenames:
+            lang = EXT.get(os.path.splitext(f)[1])
+            if lang:
+                found.add(lang)
+        if len(found) == len(set(EXT.values())):
+            break
+    return found
+
+
+def command(name, paths):
+    file = SCANNERS / CHECKS[name][0]
+    if file.suffix == ".go":
+        binary = SCANNERS / "dead-go-statements"
+        if binary.exists():
+            return [str(binary), *paths]
+        if not shutil.which("go"):
+            return None
+        return ["go", "run", str(file), *paths]
+    return [sys.executable, "-I", str(file), *paths]
+
+
+def run(name, paths):
+    cmd = command(name, paths)
+    if cmd is None:
+        print(f"## {name}: skipped, needs Go (or the prebuilt binary in the container image)")
+        return 0
+    return subprocess.call(cmd)
+
+
+def main(argv):
+    if not argv or argv[0] in ("-h", "--help", "help"):
+        print(__doc__.strip())
+        return 0
+    if argv[0] == "list":
+        for name, (_, langs, summary) in CHECKS.items():
+            print(f"{name:26} {','.join(sorted(langs)):5} {summary}")
+        return 0
+    if argv[0] == "run":
+        if len(argv) < 2 or argv[1] not in CHECKS:
+            print("usage: deadtests run CHECK [path...]   (see: deadtests list)", file=sys.stderr)
+            return 2
+        return run(argv[1], argv[2:] or ["."])
+    if argv[0] == "scan":
+        root = argv[1] if len(argv) > 1 else "."
+        langs = languages(root)
+        worst = 0
+        for name, (_, need, _) in CHECKS.items():
+            if need & langs:
+                print(f"\n## {name}", flush=True)
+                worst = max(worst, run(name, [root]))
+        if not langs:
+            print("no supported source files found", file=sys.stderr)
+        return worst
+    print(f"unknown command {argv[0]!r}; try: deadtests --help", file=sys.stderr)
+    return 2
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

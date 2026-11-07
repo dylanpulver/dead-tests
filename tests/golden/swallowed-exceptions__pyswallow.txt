@@ -1,0 +1,4 @@
+-- 3 hit(s) from 1 python file(s)
+cases/pyswallow/test_fixture.py:13: test_swallow_no_fail: swallows KeyError, function asserts nothing
+cases/pyswallow/test_fixture.py:20: test_swallow_broad: swallows Exception, function asserts nothing
+cases/pyswallow/test_fixture.py:5: test_swallow_whole_body: swallows ValueError, function asserts nothing

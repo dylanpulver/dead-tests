@@ -1,0 +1,3 @@
+-- 2 provable hit(s) from 1 python file(s)
+cases/pyraises/test_fixture.py:13: test_dead_tail_helper: assert_frame_equal() after raises(KeyError)
+cases/pyraises/test_fixture.py:7: test_dead_tail_assert: assert after raises(ValueError)

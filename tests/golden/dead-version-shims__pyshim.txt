@@ -1,0 +1,3 @@
+-- 2 dead shim(s); supported minors 3.10-3.14 from '>=3.10'
+pkg/compat.py:13: dead-else in dead_else (sys.version_info >= (3, 10))
+pkg/compat.py:6: dead-body in dead_body (sys.version_info < (3, 10))
