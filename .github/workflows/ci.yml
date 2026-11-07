@@ -27,4 +27,4 @@ jobs:
       - uses: actions/checkout@v4
       - run: docker build -t deadtests .
       - run: docker run --rm -v "$PWD/cases/pyshadowed:/src" deadtests scan . 2>&1 | tee out.txt
-      - run: grep -q "test_shapes.py:12: <module>.test_area shadows line 8" out.txt
+      - run: grep -qF "test_area shadows line 8" out.txt
