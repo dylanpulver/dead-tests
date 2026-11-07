@@ -27,3 +27,4 @@ if sys.version_info >= (3, 12):
 else:
     def test_guarded():  # a version shim, reported as GUARDED
         assert True
+# touched to test changed-only
