@@ -25,6 +25,30 @@ git clone https://github.com/dylanpulver/dead-tests
 
 `scan` detects the languages in the tree and runs every check that applies.
 
+## Use in CI
+
+On pull requests, this flags dead tests inline on the diff, only in the files the PR changes, so an old finding never lands on someone else's PR:
+
+```yaml
+on: pull_request
+
+jobs:
+  dead-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dylanpulver/dead-tests@v1
+```
+
+Inputs, all optional:
+
+- `path`: directory to scan, default `.`
+- `checks`: a subset to run, like `shadowed-tests, uncollected-java-tests`. Default is every check that applies.
+- `changed-only`: report only files the PR changes, default `true`. Set it to `false` to report everything.
+- `fail-on-findings`: fail the job when there is a finding, default `false`.
+
+GitHub shows at most 10 warnings per step on the diff. The full list is in the job summary. The Go check needs Go on the runner, which GitHub's hosted runners have. Without it, that check is skipped with a notice.
+
 ## Checks
 
 | Check | Language | Finds |

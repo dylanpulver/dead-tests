@@ -1,0 +1,46 @@
+name: dead-tests
+description: Find tests that look like coverage but never run or never assert, and flag them inline on pull requests
+author: Dylan Pulver
+branding:
+  icon: check-circle
+  color: red
+
+inputs:
+  path:
+    description: Directory to scan, relative to the workspace
+    default: "."
+  checks:
+    description: Checks to run, comma or space separated (see `deadtests list`). Empty runs every check that applies.
+    default: ""
+  changed-only:
+    description: On pull requests, only report findings in files the pull request changes
+    default: "true"
+  fail-on-findings:
+    description: Fail the step when there is at least one finding to report
+    default: "false"
+  token:
+    description: Token used to list the pull request's changed files
+    default: ${{ github.token }}
+
+outputs:
+  findings:
+    description: Number of findings reported
+    value: ${{ steps.scan.outputs.findings }}
+
+runs:
+  using: composite
+  steps:
+    - id: python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.13"
+        update-environment: false
+    - id: scan
+      shell: bash
+      env:
+        DT_PATH: ${{ inputs.path }}
+        DT_CHECKS: ${{ inputs.checks }}
+        DT_CHANGED_ONLY: ${{ inputs.changed-only }}
+        DT_FAIL: ${{ inputs.fail-on-findings }}
+        DT_TOKEN: ${{ inputs.token }}
+      run: '"${{ steps.python.outputs.python-path }}" -I "${{ github.action_path }}/action/annotate.py"'

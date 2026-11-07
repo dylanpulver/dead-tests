@@ -28,3 +28,38 @@ jobs:
       - run: docker build -t deadtests .
       - run: docker run --rm -v "$PWD/cases/pyshadowed:/src" deadtests scan . 2>&1 | tee out.txt
       - run: grep -qF "test_area shadows line 8" out.txt
+
+  action:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: all
+        uses: ./
+        with:
+          path: cases
+          changed-only: "false"
+      - run: test "${{ steps.all.outputs.findings }}" -ge 60
+      - id: strict
+        uses: ./
+        continue-on-error: true
+        with:
+          path: cases/pyshadowed
+          checks: shadowed-tests
+          changed-only: "false"
+          fail-on-findings: "true"
+      - run: test "${{ steps.strict.outcome }}" = failure && test "${{ steps.strict.outputs.findings }}" = 2
+
+  # The annotations are what a PR author sees, so read them back from the API.
+  action-annotations:
+    needs: action
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      checks: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - run: |
+          job=$(gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}/jobs" --jq '.jobs[] | select(.name == "action") | .id')
+          gh api "repos/${{ github.repository }}/check-runs/$job/annotations" --jq '.[] | "\(.path):\(.start_line) \(.message)"' | tee annotations.txt
+          grep -qF "cases/pyshadowed/tests/test_shapes.py:12 <module>.test_area shadows line 8" annotations.txt
