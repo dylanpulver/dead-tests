@@ -1,6 +1,7 @@
 """Golden-output tests: each check, run on its case folder, must print exactly
 what tests/golden/ records. Regenerate after an intended change with
 UPDATE_GOLDEN=1 python -m unittest discover tests, then read the diff."""
+import json
 import os
 import subprocess
 import sys
@@ -45,6 +46,27 @@ class GoldenTest(unittest.TestCase):
                     self.assertEqual(findings, [], "a negative control must stay clean")
                 else:
                     self.assertTrue(findings, "a positive case must produce at least one finding")
+
+
+class SarifTest(unittest.TestCase):
+    def test_scan_matches_the_schema(self):
+        try:
+            import jsonschema
+        except ImportError:
+            if os.environ.get("CI"):
+                raise
+            self.skipTest("pip install jsonschema to validate SARIF")
+        r = subprocess.run([sys.executable, "-I", "deadtests", "scan", "--format", "sarif", "cases"],
+                           cwd=ROOT, capture_output=True, text=True)
+        doc = json.loads(r.stdout)
+        jsonschema.validate(doc, json.loads((ROOT / "tests" / "sarif-schema-2.1.0.json").read_text()))
+        results = doc["runs"][0]["results"]
+        self.assertGreaterEqual(len(results), 60)
+        self.assertIn({"ruleId": "shadowed-tests", "level": "warning",
+                       "message": {"text": "<module>.test_area shadows line 8  [module-scope]"},
+                       "locations": [{"physicalLocation": {
+                           "artifactLocation": {"uri": "cases/pyshadowed/tests/test_shapes.py", "uriBaseId": "%SRCROOT%"},
+                           "region": {"startLine": 12}}}]}, results)
 
 
 if __name__ == "__main__":

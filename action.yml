@@ -18,6 +18,9 @@ inputs:
   fail-on-findings:
     description: Fail the step when there is at least one finding to report
     default: "false"
+  sarif-file:
+    description: Also write every finding as SARIF to this path, for github/codeql-action/upload-sarif. Ignores changed-only.
+    default: ""
   token:
     description: Token used to list the pull request's changed files
     default: ${{ github.token }}
@@ -43,4 +46,5 @@ runs:
         DT_CHANGED_ONLY: ${{ inputs.changed-only }}
         DT_FAIL: ${{ inputs.fail-on-findings }}
         DT_TOKEN: ${{ inputs.token }}
+        DT_SARIF: ${{ inputs.sarif-file }}
       run: '"${{ steps.python.outputs.python-path }}" -I "${{ github.action_path }}/action/annotate.py"'

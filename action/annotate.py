@@ -5,15 +5,12 @@ workspace with a relative path, because several scanners skip any path with a
 `tmp` or `fixtures` component and an absolute runner path can contain one."""
 import json
 import os
-import re
 import subprocess
 import sys
 import urllib.request
 from pathlib import Path
 
 DEADTESTS = Path(__file__).resolve().parent.parent / "deadtests"
-# "path:12: msg", "path:12  msg" or "path  [msg]" (a whole-file finding)
-FINDING = re.compile(r"^(\S+?)(?::(\d+))?:?\s+(.+)$")
 
 
 def esc(s, prop=False):
@@ -42,8 +39,13 @@ def changed_files():
 
 
 def run(args):
-    r = subprocess.run([sys.executable, "-I", str(DEADTESTS), *args], capture_output=True, text=True)
-    return r.returncode, r.stdout + r.stderr
+    """Exit code, text output and SARIF document; deadtests parses its own findings."""
+    r = subprocess.run([sys.executable, "-I", str(DEADTESTS), *args, "--format", "sarif"], capture_output=True, text=True)
+    try:
+        doc = json.loads(r.stdout)
+    except ValueError:
+        doc = None
+    return r.returncode, r.stderr, doc
 
 
 def main():
@@ -53,36 +55,34 @@ def main():
     if changed is None and os.environ.get("DT_CHANGED_ONLY", "true") == "true":
         print("::notice::not a pull request, so reporting findings in every file")
 
-    rc, out = 0, ""
+    rc, out, sarif = 0, "", None
     for name in checks or [None]:
-        code, text = run(["run", name, root] if name else ["scan", root])
+        code, text, doc = run(["run", name, root] if name else ["scan", root])
         rc, out = max(rc, code), out + (f"\n## {name}\n" if name else "") + text
-    print("::group::deadtests output\n" + out + "\n::endgroup::")
-    if rc:
-        print(f"::error::deadtests exited {rc}; see the output above")
-        return rc
-
-    check, found = "", []
-    for line in out.splitlines():
-        if line.startswith("## "):
-            check = line[3:].split(":")[0]
-            if "skipped" in line:
-                print(f"::notice::{esc(line[3:])}")
-            continue
-        m = FINDING.match(line)
-        if not m:
-            continue
-        path, lineno, msg = m.groups()
-        # Most scanners print paths from the workspace, a few from the scan root.
-        for candidate in (Path(path), Path(root) / path):
-            if candidate.is_file():
-                break
+        if doc and sarif:
+            sarif["runs"][0]["results"] += doc["runs"][0]["results"]
         else:
-            continue
-        rel = os.path.relpath(candidate).replace(os.sep, "/")
+            sarif = sarif or doc
+    print("::group::deadtests output\n" + out + "\n::endgroup::")
+    if rc or sarif is None:
+        print(f"::error::deadtests exited {rc}; see the output above")
+        return rc or 1
+    for line in out.splitlines():
+        if line.startswith("## ") and "skipped" in line:
+            print(f"::notice::{esc(line[3:])}")
+
+    if os.environ.get("DT_SARIF"):
+        with open(os.environ["DT_SARIF"], "w") as f:
+            json.dump(sarif, f, indent=2)
+
+    found = []
+    for r in sarif["runs"][0]["results"]:
+        loc = r["locations"][0]["physicalLocation"]
+        rel = loc["artifactLocation"]["uri"]
         if changed is not None and rel not in changed:
             continue
-        found.append((check, rel, lineno, msg.strip()))
+        line = loc.get("region", {}).get("startLine")
+        found.append((r["ruleId"], rel, str(line) if line else None, r["message"]["text"]))
 
     for check, rel, lineno, msg in found:
         where = f"file={esc(rel, True)}" + (f",line={lineno}" if lineno else "")

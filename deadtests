@@ -7,8 +7,13 @@ the ones that apply to the languages in a tree and runs them.
   deadtests list                 show every check and the languages it reads
   deadtests scan [path]          run every check that applies to path
   deadtests run CHECK [path...]  run one check
+
+Add --format sarif to scan or run to print SARIF 2.1.0 on stdout instead. The
+usual text output then goes to stderr.
 """
+import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -44,6 +49,9 @@ CHECKS = {
 
 EXT = {".py": "py", ".java": "java", ".cs": "cs", ".php": "php", ".rb": "rb", ".go": "go", ".rs": "rs",
        ".js": "js", ".ts": "js", ".jsx": "js", ".tsx": "js", ".mjs": "js", ".cjs": "js"}
+HELP = "https://github.com/dylanpulver/dead-tests#checks"
+# "path:12: msg", "path:12  msg" or "path  [msg]" (a whole-file finding)
+FINDING = re.compile(r"^(\S+?)(?::(\d+))?:?\s+(.+)$")
 SKIP = {".git", "node_modules", "vendor", "target", ".venv", "venv", "dist", "build"}
 
 
@@ -72,15 +80,67 @@ def command(name, paths):
     return [sys.executable, "-I", str(file), *paths]
 
 
-def run(name, paths):
+def findings(text, roots):
+    """(path relative to cwd, line or None, message) for each finding line in a scanner's output."""
+    for line in text.splitlines():
+        m = FINDING.match(line)
+        if not m:
+            continue
+        path, lineno, msg = m.groups()
+        # Most scanners print paths from the cwd, a few from the scan root.
+        for candidate in [Path(path)] + [Path(r) / path for r in roots]:
+            if candidate.is_file():
+                yield os.path.relpath(candidate).replace(os.sep, "/"), lineno, msg.strip()
+                break
+
+
+def run(name, paths, results=None):
+    """Run one check. With a results list, capture its output, echo it to stderr and collect SARIF results."""
     cmd = command(name, paths)
     if cmd is None:
-        print(f"## {name}: skipped, needs Go (or the prebuilt binary in the container image)")
+        print(f"## {name}: skipped, needs Go (or the prebuilt binary in the container image)",
+              file=sys.stderr if results is not None else sys.stdout)
         return 0
-    return subprocess.call(cmd)
+    if results is None:
+        return subprocess.call(cmd)
+    r = subprocess.run(cmd, stdout=subprocess.PIPE, text=True)
+    sys.stderr.write(r.stdout)
+    for rel, lineno, msg in findings(r.stdout, paths):
+        loc = {"artifactLocation": {"uri": rel, "uriBaseId": "%SRCROOT%"}}
+        if lineno:
+            loc["region"] = {"startLine": int(lineno)}
+        results.append({"ruleId": name, "level": "warning", "message": {"text": msg},
+                        "locations": [{"physicalLocation": loc}]})
+    return r.returncode
+
+
+def sarif(results):
+    rules = [{"id": name, "name": name, "shortDescription": {"text": summary}, "helpUri": HELP}
+             for name, (_, _, summary) in CHECKS.items()]
+    return {"$schema": "https://docs.oasis-open.org/sarif/sarif/v2.1.0/errata01/os/schemas/sarif-schema-2.1.0.json", "version": "2.1.0",
+            "runs": [{"tool": {"driver": {"name": "deadtests", "informationUri": "https://github.com/dylanpulver/dead-tests",
+                                          "rules": rules}},
+                      "originalUriBaseIds": {"%SRCROOT%": {"uri": Path.cwd().as_uri() + "/"}},
+                      "results": results}]}
 
 
 def main(argv):
+    results = None
+    if "--format" in argv:
+        i = argv.index("--format")
+        fmt = argv[i + 1] if i + 1 < len(argv) else ""
+        if fmt not in ("text", "sarif"):
+            print("--format takes text or sarif", file=sys.stderr)
+            return 2
+        argv = argv[:i] + argv[i + 2:]
+        results = [] if fmt == "sarif" else None
+    rc = command_main(argv, results)
+    if results is not None and argv and argv[0] in ("scan", "run") and rc != 2:
+        print(json.dumps(sarif(results), indent=2))
+    return rc
+
+
+def command_main(argv, results):
     if not argv or argv[0] in ("-h", "--help", "help"):
         print(__doc__.strip())
         return 0
@@ -92,15 +152,15 @@ def main(argv):
         if len(argv) < 2 or argv[1] not in CHECKS:
             print("usage: deadtests run CHECK [path...]   (see: deadtests list)", file=sys.stderr)
             return 2
-        return run(argv[1], argv[2:] or ["."])
+        return run(argv[1], argv[2:] or ["."], results)
     if argv[0] == "scan":
         root = argv[1] if len(argv) > 1 else "."
         langs = languages(root)
         worst = 0
         for name, (_, need, _) in CHECKS.items():
             if need & langs:
-                print(f"\n## {name}", flush=True)
-                worst = max(worst, run(name, [root]))
+                print(f"\n## {name}", flush=True, file=sys.stderr if results is not None else sys.stdout)
+                worst = max(worst, run(name, [root], results))
         if not langs:
             print("no supported source files found", file=sys.stderr)
         return worst

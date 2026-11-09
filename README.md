@@ -46,8 +46,35 @@ Inputs, all optional:
 - `checks`: a subset to run, like `shadowed-tests, uncollected-java-tests`. Default is every check that applies.
 - `changed-only`: report only files the PR changes, default `true`. Set it to `false` to report everything.
 - `fail-on-findings`: fail the job when there is a finding, default `false`.
+- `sarif-file`: also write every finding as SARIF to this path. See [SARIF](#sarif).
 
 GitHub shows at most 10 warnings per step on the diff. The full list is in the job summary. The Go check needs Go on the runner, which GitHub's hosted runners have. Without it, that check is skipped with a notice.
+
+## SARIF
+
+`scan` and `run` take `--format sarif` and print SARIF 2.1.0 instead of text, with one rule per check. The text output goes to stderr so you still see it.
+
+```sh
+./dead-tests/deadtests scan --format sarif . > dead-tests.sarif
+```
+
+In the Action, set `sarif-file` and hand the file to GitHub code scanning. Then findings show up in the Security tab and on pull requests like any other code scanning alert. The SARIF file holds every finding, whatever `changed-only` says, because code scanning does its own diff filtering.
+
+```yaml
+permissions:
+  contents: read
+  security-events: write
+
+steps:
+  - uses: actions/checkout@v4
+  - uses: dylanpulver/dead-tests@v1
+    with:
+      sarif-file: dead-tests.sarif
+  - uses: github/codeql-action/upload-sarif@v4
+    with:
+      sarif_file: dead-tests.sarif
+      category: dead-tests
+```
 
 ## Checks
 
@@ -103,7 +130,7 @@ Merged fixes in projects other people depend on:
 
 ## Tests
 
-`cases/` holds a small positive case per check, most written before the scanner existed, plus negative controls. `tests/test_cases.py` runs every check on its case and compares the output to `tests/golden/`.
+`cases/` holds a small positive case per check, most written before the scanner existed, plus negative controls. `tests/test_cases.py` runs every check on its case and compares the output to `tests/golden/`. A SARIF test checks `scan --format sarif` against the official 2.1.0 schema in `tests/`, and needs `pip install jsonschema`.
 
 ```sh
 python -m unittest discover tests

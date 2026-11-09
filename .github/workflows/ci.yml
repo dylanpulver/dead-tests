@@ -19,6 +19,7 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: "1.23"
+      - run: pip install jsonschema
       - run: python -m unittest discover tests -v
 
   image:
@@ -31,6 +32,9 @@ jobs:
 
   action:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
     steps:
       - uses: actions/checkout@v4
       - id: all
@@ -48,6 +52,19 @@ jobs:
           changed-only: "false"
           fail-on-findings: "true"
       - run: test "${{ steps.strict.outcome }}" = failure && test "${{ steps.strict.outputs.findings }}" = 2
+      # One small case only, so the Security tab carries 2 fixture alerts, not 60.
+      - uses: ./
+        with:
+          path: cases/pyshadowed
+          changed-only: "false"
+          sarif-file: dead-tests.sarif
+      - run: |
+          grep -qF '"startLine": 12' dead-tests.sarif
+      - if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: dead-tests.sarif
+          category: dead-tests-fixtures
 
   # The annotations are what a PR author sees, so read them back from the API.
   action-annotations:
