@@ -36,6 +36,7 @@ CHECKS = {
     "stale-version-gates":       ("find-stale-version-gates.py", {"py"}, "skipif gates true on every supported Python"),
     "dead-version-shims":        ("find-dead-version-shims.py", {"py"}, "sys.version_info branches that cannot run"),
     "uncollected-java-tests":    ("find-uncollected-java-tests.py", {"java"}, "testFoo() methods JUnit 5 cannot collect"),
+    "uncollected-kotlin-tests":  ("find-uncollected-kotlin-tests.py", {"kt"}, "Kotlin test functions missing @Test"),
     "dead-junit4-expected":      ("find-dead-junit4-expected-assertions.py", {"java"}, "asserts made unreachable by @Test(expected=...)"),
     "uncollected-dotnet-tests":  ("find-uncollected-dotnet-tests.py", {"cs"}, "NUnit / MSTest / xUnit methods missing their attribute"),
     "uncollected-php-tests":     ("find-uncollected-php-tests.py", {"php"}, "PHPUnit methods that are never collected"),
@@ -47,7 +48,7 @@ CHECKS = {
     "matcherless-expects":       ("find-matcherless-expects.py", {"js"}, "Jest / Vitest expect(x) with no matcher"),
 }
 
-EXT = {".py": "py", ".java": "java", ".cs": "cs", ".php": "php", ".rb": "rb", ".go": "go", ".rs": "rs",
+EXT = {".py": "py", ".java": "java", ".cs": "cs", ".php": "php", ".rb": "rb", ".go": "go", ".rs": "rs", ".kt": "kt",
        ".js": "js", ".ts": "js", ".jsx": "js", ".tsx": "js", ".mjs": "js", ".cjs": "js"}
 HELP = "https://github.com/dylanpulver/dead-tests#checks"
 # "path:12: msg", "path:12  msg" or "path  [msg]" (a whole-file finding)

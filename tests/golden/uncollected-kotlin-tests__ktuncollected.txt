@@ -1,0 +1,6 @@
+-- 5 candidate(s) from 7 Kotlin file(s) in 1 root(s); 3 dropped as called elsewhere in the tree
+cases/ktuncollected/src/test/kotlin/demo/DeadTest.kt:18  DeadTest.testNothingRunsThis()
+cases/ktuncollected/src/test/kotlin/demo/DeadTest.kt:22  DeadTest.`forgotten backticked test`()
+cases/ktuncollected/src/test/kotlin/demo/DeadTest.kt:26  DeadTest.testForgottenCoroutine()
+cases/ktuncollected/src/test/kotlin/demo/LegacyJunit4Test.kt:12  LegacyJunit4Test.testForgottenHere()
+cases/ktuncollected/src/test/kotlin/demo/NestedShapesTest.kt:15  WhenEmpty.testForgottenInNested()

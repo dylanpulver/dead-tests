@@ -92,6 +92,7 @@ steps:
 | `stale-version-gates` | Python | `skipif` gates true on every supported Python |
 | `dead-version-shims` | Python | `sys.version_info` branches that cannot run |
 | `uncollected-java-tests` | Java | `testFoo()` methods JUnit 5 cannot collect |
+| `uncollected-kotlin-tests` | Kotlin | JUnit and kotlin.test functions missing `@Test` |
 | `dead-junit4-expected` | Java | asserts made unreachable by `@Test(expected=...)` |
 | `uncollected-dotnet-tests` | C# | NUnit and MSTest methods missing their attribute (xUnit warns on its own) |
 | `uncollected-php-tests` | PHP | PHPUnit methods that are never collected |
