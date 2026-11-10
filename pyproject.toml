@@ -1,0 +1,43 @@
+[build-system]
+requires = ["hatchling>=1.24"]
+build-backend = "hatchling.build"
+
+[project]
+name = "dead-tests"
+version = "1.3.0"
+description = "Find tests that look like coverage but can never fail or never run"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.12"
+authors = [{ name = "Dylan Pulver" }]
+keywords = ["testing", "static-analysis", "pytest", "junit", "dead-code", "sarif"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Software Development :: Testing",
+]
+
+[project.urls]
+Homepage = "https://github.com/dylanpulver/dead-tests"
+Issues = "https://github.com/dylanpulver/dead-tests/issues"
+
+[project.scripts]
+deadtests = "dead_tests.cli:cli"
+dead-tests = "dead_tests.cli:cli"
+
+# The repo keeps the CLI as a plain script and the scanners as loose files, so
+# the Action and the Docker image run them in place. The wheel maps them into
+# one package; cli.py finds scanners/ next to itself either way.
+[tool.hatch.build.targets.wheel.force-include]
+"_wheel/__init__.py" = "dead_tests/__init__.py"
+"deadtests" = "dead_tests/cli.py"
+"scanners" = "dead_tests/scanners"
+
+[tool.hatch.build.targets.sdist]
+include = ["deadtests", "scanners", "_wheel", "README.md", "LICENSE", "pyproject.toml"]
+exclude = ["**/__pycache__"]
