@@ -107,7 +107,7 @@ steps:
 
 These are lead generators, not oracles. A test with no attribute can be a deliberately parked case. A self-comparison can be a determinism test on a property that recomputes. Each scanner's docstring lists the false-positive shapes it has met in real code and which ones it filters, so read the file before trusting a result.
 
-The other thing worth knowing: 3 of the first 11 dead tests I revived failed on their first run. A test that never ran was never kept up to date, so enabling it can surface a real bug or a stale expectation. Run the revived test before filing anything.
+The other thing worth knowing: 2 of the first 11 dead tests I revived failed on their first run. A test that never ran was never kept up to date, so enabling it can surface a real bug or a stale expectation. Run the revived test before filing anything.
 
 ## Found with these
 
