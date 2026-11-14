@@ -6,6 +6,8 @@ A test with no `@Test` attribute compiles, sits in the suite and reads like a ch
 
 These scanners find them. Each one is a single stdlib-only file you can read in a sitting.
 
+The write-up, with the fixes that went upstream: [The tests that pass because they never run](https://dylanpulver.com/writing/tests-that-never-run).
+
 ## Run it
 
 With Docker, against the current directory:
