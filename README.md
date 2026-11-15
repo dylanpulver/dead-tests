@@ -2,9 +2,54 @@
 
 Find tests that look like coverage but can never fail, or never run at all.
 
-A test with no `@Test` attribute compiles, sits in the suite and reads like a check. JUnit 5 never collects it. An `assert` after the raising call inside `pytest.raises` is never reached. A second `def test_area` silently replaces the first. `expect(x)` with no matcher verifies nothing. Every one of these stays green forever, and no runner or default linter says a word.
+This file has three tests. pytest runs two of them, and one of those has an assert that can never run:
 
-These scanners find them. Each one is a single stdlib-only file you can read in a sitting.
+```python
+import pytest
+
+from shop import parse_price
+
+
+def test_parse_price():
+    assert parse_price("$4.20") == 4.20
+
+
+def test_parse_price():  # same name, so this one replaces the test above
+    assert parse_price("$0") == 0
+
+
+def test_rejects_garbage():
+    with pytest.raises(ValueError):
+        parse_price("four dollars")
+        assert parse_price("$1") == 1  # never runs: the line above raised
+```
+
+```console
+$ pytest -q
+..                                                                       [100%]
+2 passed in 0.00s
+
+$ deadtests scan .
+## shadowed-tests
+-- 1 shadowed test(s) from 1 test file(s)
+tests/test_prices.py:10: <module>.test_parse_price shadows line 6  [module-scope]
+
+## dead-pytest-raises
+-- 1 provable hit(s) from 2 python file(s)
+tests/test_prices.py:17: test_rejects_garbage: assert after raises(ValueError)
+```
+
+(Checks with no findings trimmed from the output.)
+
+```sh
+docker run --rm -v "$PWD:/src" ghcr.io/dylanpulver/dead-tests
+```
+
+22 checks across Python, Java, Kotlin, C#, PHP, Ruby, Go, Rust and JS/TS. Each one is a single stdlib-only file you can read in a sitting. Fixes found with them have merged in [vuejs/core](https://github.com/vuejs/core/pull/16123), [laravel/framework](https://github.com/laravel/framework/pull/62312), [symfony](https://github.com/symfony/symfony/pull/67854), [pydantic](https://github.com/pydantic/pydantic/pull/13921) and [jackson-databind](https://github.com/FasterXML/jackson-databind/pull/6266), with the full list [below](#found-with-these).
+
+## Why these stay green
+
+A test with no `@Test` attribute compiles, sits in the suite and reads like a check. JUnit 5 never collects it. An `assert` after the raising call inside `pytest.raises` is never reached. A second `def test_area` silently replaces the first. `expect(x)` with no matcher verifies nothing. Every one of these stays green forever, and no runner or default linter says a word.
 
 The write-up, with the fixes that went upstream: [The tests that pass because they never run](https://dylanpulver.com/writing/tests-that-never-run).
 
